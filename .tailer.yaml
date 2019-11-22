@@ -1,0 +1,39 @@
+# 全局认证信息
+# 当项目未指定私有的认证方式时，使用全局的认证方式
+auth:
+  # 用户名
+  user: Nemo
+  # 私钥文件路径（注意权限设置正确）
+  # 将自己的公钥追加到~/.ssh/authorized_keys文件中，确保文件权限为600
+  private_key: ~/.ssh/id_rsa
+  # 密码（一般不建议用密码）
+#  pass: Don't_set_this_in_multiple_users_server
+
+# 项目设置
+project:
+
+  # 项目标识
+  test:
+    # 项目私有的认证方式，格式同全局认证一致
+    # auth:
+    # private_key: ~/.ssh/id_rsa
+
+    # 项目下常用路径映射
+    # key为命令中使用的参数，值为对应的路径
+    # path:
+    # key: path
+
+    # 项目服务器列表
+    # 支持IP、机器名（需要能正确解析）
+    servers:
+      - 1.2.3.4
+      - 2.3.4.5
+
+  other:
+    # 项目下常用路径映射
+    # key为命令中使用的参数，值为对应的路径
+    path:
+      access: /data/nginx/logs/access.log
+      php: /data/php/php_errors.log
+    servers:
+      - 4592.bjcc.xxx.net
