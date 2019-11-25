@@ -35,19 +35,17 @@ func initConfig() {
 	} else {
 		// Find home directory.
 		home, err := homedir.Dir()
-		fmt.Println("home is", home)
 		if err != nil {
 			fmt.Println("can't find home dir. use /etc instead.")
 			home = "/etc"
 		}
-		// Search config in home directory with name ".cobra" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cobra")
+		viper.SetConfigName(".tailer")
 	}
 
 	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println("read config file failed. err:", err)
 	}
 }
