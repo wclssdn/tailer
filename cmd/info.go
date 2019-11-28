@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -23,5 +24,8 @@ var infoCmd = &cobra.Command{
 		}
 		fmt.Println("home is", home)
 		fmt.Println("loaded config file:", viper.ConfigFileUsed())
+		fmt.Println("TERM:", os.Getenv("TERM"))
+		fmt.Println("ConEmuANSI:", os.Getenv("ConEmuANSI"))
+		fmt.Println("ANSICON:", os.Getenv("ANSICON"))
 	},
 }

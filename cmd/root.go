@@ -37,9 +37,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		if err != nil {
 			fmt.Println("can't find home dir. use /etc instead.")
-			home = "/etc"
 		}
 		viper.AddConfigPath(home)
+		viper.AddConfigPath("/etc")
 		viper.SetConfigName(".tailer")
 	}
 

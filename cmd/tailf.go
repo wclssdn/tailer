@@ -46,9 +46,17 @@ var tailfCmd = &cobra.Command{
 			for {
 				select {
 				case buf := <-stdOutCh:
-					fmt.Println(string(buf))
+					if color.IsSupportColor() {
+						fmt.Println(string(buf))
+					} else {
+						fmt.Println("--->", string(buf))
+					}
 				case buf := <-stdErrCh:
-					fmt.Println(string(buf))
+					if color.IsSupportColor() {
+						fmt.Println(string(buf))
+					} else {
+						fmt.Println("--->", string(buf))
+					}
 				}
 			}
 		}()
