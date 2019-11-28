@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io"
 	"sync"
 	"tailer/lib"
 )
@@ -20,12 +23,9 @@ var tailfCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
 		logFile := args[1]
-		fmt.Println("project:", projectName)
-		fmt.Println("log file:", logFile)
 		servers := viper.GetStringSlice(fmt.Sprintf("project.%s.servers", projectName))
-		fmt.Println("servers:", servers)
 		if len(servers) == 0 {
-			fmt.Println("no servers in project", projectName)
+			fmt.Println(color.Red.Render("no servers in project", projectName))
 			return
 		}
 		paths := viper.GetStringMapString(fmt.Sprintf("project.%s.path", projectName))
@@ -33,6 +33,26 @@ var tailfCmd = &cobra.Command{
 		if ok {
 			logFile = path
 		}
+		fmt.Println("project:", color.Bold.Render(projectName))
+		fmt.Println("log file:", color.Bold.Render(logFile))
+		fmt.Println("servers:", servers)
+
+		// 整体共用一个channel
+		stdOutCh := make(chan []byte)
+		stdErrCh := make(chan []byte)
+		defer close(stdErrCh)
+		defer close(stdOutCh)
+		go func() {
+			for {
+				select {
+				case buf := <-stdOutCh:
+					fmt.Println(string(buf))
+				case buf := <-stdErrCh:
+					fmt.Println(string(buf))
+				}
+			}
+		}()
+
 		wg := &sync.WaitGroup{}
 		for _, host := range servers {
 			wg.Add(1)
@@ -40,18 +60,87 @@ var tailfCmd = &cobra.Command{
 				defer wg.Done()
 				session, err := lib.SshSession(host)
 				if err != nil {
-					fmt.Println(host, "err:", err)
+					fmt.Println(color.Cyan.Render(host), color.Red.Render(err))
 					return
 				}
 				command := fmt.Sprintf("tailf %s", logFile)
+
+				stdErr, err := session.StderrPipe()
+				if err != nil {
+					fmt.Println(color.Cyan.Render(host), color.Red.Render(err))
+				}
+				stdOut, err := session.StdoutPipe()
+				if err != nil {
+					fmt.Println(color.Cyan.Render(host), color.Red.Render(err))
+				}
+
 				err = session.Start(command)
 				if err != nil {
-					fmt.Println(host, command, "got err:\n", err)
+					fmt.Println(color.Cyan.Render(host), color.Red.Render(err))
 					return
 				}
+
+				go func() {
+					re := bufio.NewReader(stdErr)
+					bigBuf := make([]byte, 0)
+					for {
+						buf, isP, err := re.ReadLine()
+						if isP {
+							bigBuf = append(bigBuf, buf...)
+							fmt.Println(color.Cyan.Render(host), color.Red.Render("todo with isPrefix is true"), "len:", len(buf), "cap:", cap(buf))
+							continue
+						}
+						if len(bigBuf) > 0 {
+							bigBuf = append(bigBuf, buf...)
+						} else {
+							bigBuf = buf
+						}
+						if err != nil {
+							stdErrCh <- []byte(color.FgCyan.Render(host) + " " + color.FgRed.Render(err))
+							if err == io.EOF {
+								// todo retry after file created
+								break
+							}
+						} else {
+							stdErrCh <- []byte(color.FgCyan.Render(host) + " " + color.FgRed.Render(string(bigBuf)))
+						}
+						// reset
+						bigBuf = make([]byte, 0)
+					}
+				}()
+
+				go func() {
+					re := bufio.NewReader(stdOut)
+					bigBuf := make([]byte, 0)
+					for {
+						buf, isP, err := re.ReadLine()
+						if isP {
+							bigBuf = append(bigBuf, buf...)
+							fmt.Println(color.Cyan.Render(host), color.Red.Render("todo with isPrefix is true"), "len:", len(buf), "cap:", cap(buf))
+							continue
+						}
+						if len(bigBuf) > 0 {
+							bigBuf = append(bigBuf, buf...)
+						} else {
+							bigBuf = buf
+						}
+						if err != nil {
+							stdOutCh <- []byte(color.FgCyan.Render(host) + " " + color.FgRed.Render(err))
+							if err == io.EOF {
+								// todo retry after file created
+								break
+							}
+						} else {
+							stdOutCh <- []byte(color.FgCyan.Render(host) + " " + string(bigBuf))
+						}
+						// reset
+						bigBuf = make([]byte, 0)
+					}
+				}()
+
 				err = session.Wait()
 				if err != nil {
-					fmt.Println(host, "err:", err)
+					fmt.Println(color.Cyan.Render(host), color.Red.Render(err))
 					return
 				}
 			}(host)
