@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
-	"net"
 	"os"
 	"time"
 )
@@ -40,12 +39,10 @@ func SshConnect(host string) (*ssh.Client, error) {
 	}
 
 	conf := &ssh.ClientConfig{
-		User: user,
-		Auth: authMethods,
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			return nil
-		},
-		Timeout: time.Second * 3,
+		User:            user,
+		Auth:            authMethods,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         time.Second * 3,
 	}
 	conf.SetDefaults()
 	return ssh.Dial("tcp", fmt.Sprintf("%s:22", host), conf)
