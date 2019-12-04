@@ -25,7 +25,7 @@ var tailfCmd = &cobra.Command{
 		logFile := args[1]
 		servers := viper.GetStringSlice(fmt.Sprintf("project.%s.servers", projectName))
 		if len(servers) == 0 {
-			fmt.Println(color.Red.Render("no servers in project", projectName))
+			fmt.Println(color.Red.Render("no servers in project: ", projectName))
 			return
 		}
 		paths := viper.GetStringMapString(fmt.Sprintf("project.%s.path", projectName))
