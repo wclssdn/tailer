@@ -95,7 +95,6 @@ var tailfCmd = &cobra.Command{
 						buf, isP, err := re.ReadLine()
 						if isP {
 							bigBuf = append(bigBuf, buf...)
-							fmt.Println(color.Cyan.Render(host), color.Red.Render("todo with isPrefix is true"), "len:", len(buf), "cap:", cap(buf))
 							continue
 						}
 						if len(bigBuf) > 0 {
@@ -124,7 +123,6 @@ var tailfCmd = &cobra.Command{
 						buf, isP, err := re.ReadLine()
 						if isP {
 							bigBuf = append(bigBuf, buf...)
-							fmt.Println(color.Cyan.Render(host), color.Red.Render("todo with isPrefix is true"), "len:", len(buf), "cap:", cap(buf))
 							continue
 						}
 						if len(bigBuf) > 0 {
