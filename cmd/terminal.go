@@ -3,13 +3,15 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io"
 	"os"
 	"sync"
 	"tailer/lib"
+	"time"
+
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -22,6 +24,7 @@ var terminalCmd = &cobra.Command{
 	Long:  `The output content is from all servers too.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		isSupportColor := color.IsSupportColor()
 		projectName := args[0]
 		servers := viper.GetStringSlice(fmt.Sprintf("project.%s.servers", projectName))
 		if len(servers) == 0 {
@@ -30,6 +33,11 @@ var terminalCmd = &cobra.Command{
 		}
 		fmt.Println("project:", color.Bold.Render(projectName))
 		fmt.Println("servers:", servers)
+
+		if !isSupportColor {
+			fmt.Println("this terminal does not support color")
+			time.Sleep(time.Millisecond * 10)
+		}
 
 		// 整体共用一个channel
 		stdOutCh := make(chan []byte)
@@ -40,13 +48,13 @@ var terminalCmd = &cobra.Command{
 			for {
 				select {
 				case buf := <-stdOutCh:
-					if color.IsSupportColor() {
+					if isSupportColor {
 						fmt.Println(string(buf))
 					} else {
 						fmt.Println("--->", string(buf))
 					}
 				case buf := <-stdErrCh:
-					if color.IsSupportColor() {
+					if isSupportColor {
 						fmt.Println(string(buf))
 					} else {
 						fmt.Println("--->", string(buf))
@@ -95,7 +103,6 @@ var terminalCmd = &cobra.Command{
 						buf, isP, err := re.ReadLine()
 						if isP {
 							bigBuf = append(bigBuf, buf...)
-							fmt.Println(color.Cyan.Render(host), color.Red.Render("todo with isPrefix is true"), "len:", len(buf), "cap:", cap(buf))
 							continue
 						}
 						if len(bigBuf) > 0 {
@@ -124,7 +131,6 @@ var terminalCmd = &cobra.Command{
 						buf, isP, err := re.ReadLine()
 						if isP {
 							bigBuf = append(bigBuf, buf...)
-							fmt.Println(color.Cyan.Render(host), color.Red.Render("todo with isPrefix is true"), "len:", len(buf), "cap:", cap(buf))
 							continue
 						}
 						if len(bigBuf) > 0 {

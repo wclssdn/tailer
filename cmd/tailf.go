@@ -3,12 +3,14 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/gookit/color"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"io"
 	"sync"
 	"tailer/lib"
+	"time"
+
+	"github.com/gookit/color"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -17,10 +19,11 @@ func init() {
 
 var tailfCmd = &cobra.Command{
 	Use:   "tailf projectName logFileAlias/logFile",
-	Short: "similar to tailf",
-	Long:  `similar to tailf`,
+	Short: "similar to tail -f",
+	Long:  `similar to tail -f`,
 	Args:  cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
+		isSupportColor := color.IsSupportColor()
 		projectName := args[0]
 		logFile := args[1]
 		servers := viper.GetStringSlice(fmt.Sprintf("project.%s.servers", projectName))
@@ -28,14 +31,20 @@ var tailfCmd = &cobra.Command{
 			fmt.Println(color.Red.Render("no servers in project: ", projectName))
 			return
 		}
+
+		if !isSupportColor {
+			fmt.Println("this terminal does not support color")
+			time.Sleep(time.Millisecond * 200)
+		}
+
 		paths := viper.GetStringMapString(fmt.Sprintf("project.%s.path", projectName))
 		path, ok := paths[logFile]
 		if ok {
 			logFile = path
 		}
-		fmt.Println("project:", color.Bold.Render(projectName))
-		fmt.Println("log file:", color.Bold.Render(logFile))
-		fmt.Println("servers:", servers)
+		fmt.Println("project:", color.Bold.Render(color.FgGreen.Render(projectName)))
+		fmt.Println("log file:", color.Bold.Render(color.FgGreen.Render(logFile)))
+		fmt.Println("servers:", color.FgGreen.Render(servers))
 
 		// 整体共用一个channel
 		stdOutCh := make(chan []byte)
@@ -46,13 +55,13 @@ var tailfCmd = &cobra.Command{
 			for {
 				select {
 				case buf := <-stdOutCh:
-					if color.IsSupportColor() {
+					if isSupportColor {
 						fmt.Println(string(buf))
 					} else {
 						fmt.Println("--->", string(buf))
 					}
 				case buf := <-stdErrCh:
-					if color.IsSupportColor() {
+					if isSupportColor {
 						fmt.Println(string(buf))
 					} else {
 						fmt.Println("--->", string(buf))

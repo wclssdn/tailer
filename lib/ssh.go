@@ -3,11 +3,12 @@ package lib
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/viper"
-	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh"
 )
 
 func SshConnect(host string) (*ssh.Client, error) {

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -12,9 +13,9 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:   "tailer",
-		Short: "A tool for tail log file",
-		Long: `Tailer is a tool for tail log file.
-Servers are retrieved from HULK.`,
+		Short: "A tool for interacting with multiple remote hosts at the same time.",
+		Long: `A tool for interacting with multiple remote hosts at the same time. 
+Especially it supports tail -f command.`,
 	}
 )
 
@@ -25,7 +26,7 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tailer.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tailer.yaml or /etc/.tailer)")
 }
 
 func initConfig() {

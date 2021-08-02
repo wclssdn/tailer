@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-homedir"
-	"github.com/spf13/viper"
 	"os"
 
+	"github.com/gookit/color"
+
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -27,5 +29,20 @@ var infoCmd = &cobra.Command{
 		fmt.Println("TERM:", os.Getenv("TERM"))
 		fmt.Println("ConEmuANSI:", os.Getenv("ConEmuANSI"))
 		fmt.Println("ANSICON:", os.Getenv("ANSICON"))
+
+		if color.IsSupportColor() {
+			fmt.Println("color: " + color.FgLightGreen.Render("support"))
+		} else {
+			fmt.Println("color: not support")
+		}
+		if color.IsSupport256Color() {
+			fmt.Println("256 color: " + color.FgLightGreen.Render("support"))
+		} else {
+			if color.IsSupportColor() {
+				fmt.Println("256 color: " + color.FgLightRed.Render("not support"))
+			} else {
+				fmt.Println("256 color: not support")
+			}
+		}
 	},
 }
