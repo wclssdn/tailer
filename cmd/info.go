@@ -30,6 +30,7 @@ var infoCmd = &cobra.Command{
 		fmt.Println("ConEmuANSI:", os.Getenv("ConEmuANSI"))
 		fmt.Println("ANSICON:", os.Getenv("ANSICON"))
 
+		fmt.Println("color test: " + color.FgLightGreen.Render("is this colored?"))
 		if color.IsSupportColor() {
 			fmt.Println("color: " + color.FgLightGreen.Render("support"))
 		} else {
